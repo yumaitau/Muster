@@ -1,0 +1,29 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "strict": true,
+    "noUncheckedIndexedAccess": true,
+    "exactOptionalPropertyTypes": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "resolveJsonModule": true,
+    "isolatedModules": true,
+    "declaration": true,
+    "declarationMap": true,
+    "sourceMap": true,
+    "ignoreDeprecations": "6.0",
+    "baseUrl": ".",
+    "paths": {
+      "@muster/core": ["packages/core/src/index.ts"],
+      "@muster/db": ["packages/db/src/index.ts"],
+      "@muster/connector-sdk": ["packages/connector-sdk/src/index.ts"],
+      "@muster/connector-xero": ["packages/connector-xero/src/index.ts"],
+      "@muster/adapter-auth-betterauth": ["packages/adapter-auth-betterauth/src/index.ts"],
+      "@muster/adapter-storage-s3": ["packages/adapter-storage-s3/src/index.ts"],
+      "@muster/adapter-model": ["packages/adapter-model/src/index.ts"]
+    }
+  }
+}

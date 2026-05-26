@@ -1,0 +1,23 @@
+{
+  "name": "muster",
+  "version": "0.1.0",
+  "private": true,
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@11.3.0",
+  "scripts": {
+    "build": "turbo build",
+    "dev": "turbo dev",
+    "test": "vitest run",
+    "typecheck": "turbo typecheck",
+    "lint": "turbo lint",
+    "db:generate": "pnpm --filter @muster/db db:generate",
+    "db:migrate": "pnpm --filter @muster/db db:migrate"
+  },
+  "devDependencies": {
+    "@types/node": "25.9.1",
+    "turbo": "2.9.14",
+    "typescript": "6.0.3",
+    "vitest": "4.1.7",
+    "zod": "4.3.0"
+  }
+}
