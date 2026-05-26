@@ -6,3 +6,7 @@ dist
 *.log
 apps/web/.next
 packages/*/dist
+packages/*/src/**/*.js
+packages/*/src/**/*.js.map
+packages/*/src/**/*.d.ts
+packages/*/src/**/*.d.ts.map
