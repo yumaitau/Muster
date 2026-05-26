@@ -31,5 +31,10 @@ pnpm test
 - `@muster/db` contains Drizzle schema, client and migration configuration.
 - `@muster/connector-xero` implements the Xero OAuth connector and `xero.report.balance_sheet`.
 - `apps/web` contains the Next.js dashboard and Trigger.dev tasks.
+- `docs/connector-authoring` documents the connector SDK contract and a minimal authoring template.
 
 User-facing copy uses Australian spelling. No secrets are committed; all credentials and keys come from environment variables.
+
+## P1 roadmap coverage
+
+The main branch includes foundations for the P1 roadmap: approval lifecycle and queue, agentic tool-loop contracts, invoice draft proposals, canonical messages and delivery records, ClickSend and Meta connectors, Canva and Monday.com connectors, content and task canonical tables, AI chat over read-only canonical data, and CI.

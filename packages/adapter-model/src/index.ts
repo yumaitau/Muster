@@ -35,6 +35,14 @@ export function createModelAdapter(config: { provider?: string } = {}): ModelAda
       for await (const chunk of result.textStream) {
         yield chunk;
       }
+    },
+    async generateWithTools(input) {
+      const result = await generateText({
+        model: typedModel,
+        ...(input.system ? { system: input.system } : {}),
+        prompt: `${input.prompt}\n\nTools available:\n${input.tools.map((tool) => `- ${tool.id}: ${tool.description}`).join("\n")}\n\nReturn a concise plan and do not claim that a tool ran unless it appears in the audited tool log.`
+      });
+      return { text: result.text, toolCalls: [] };
     }
   };
 }

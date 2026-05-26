@@ -8,12 +8,16 @@
     "build": "next build",
     "start": "next start",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "lint": "next lint"
+    "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
     "@muster/adapter-auth-betterauth": "workspace:*",
     "@muster/adapter-model": "workspace:*",
     "@muster/adapter-storage-s3": "workspace:*",
+    "@muster/connector-canva": "workspace:*",
+    "@muster/connector-clicksend": "workspace:*",
+    "@muster/connector-meta": "workspace:*",
+    "@muster/connector-monday": "workspace:*",
     "@muster/connector-xero": "workspace:*",
     "@muster/core": "workspace:*",
     "@muster/db": "workspace:*",

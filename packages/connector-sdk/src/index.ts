@@ -25,6 +25,9 @@ export interface CanonicalEntityMapping {
   entity: string;
   version: string;
   description: string;
+  schema?: z.ZodType;
+  toCanonical?: (source: unknown) => unknown;
+  fromCanonical?: (canonical: unknown) => unknown;
 }
 
 export interface ConnectorLogger {
@@ -41,6 +44,7 @@ export interface ConnectorContext<Credentials = unknown> {
   };
   credentials: Credentials;
   logger: ConnectorLogger;
+  fetch?: typeof fetch;
 }
 
 export interface Capability<I = unknown, O = unknown> {
@@ -78,4 +82,22 @@ export function defineConnector(connector: Connector): Connector {
     capabilityIds.add(capability.id);
   }
   return connector;
+}
+
+export interface CapabilityTool<I = unknown, O = unknown> {
+  id: string;
+  description: string;
+  input: z.ZodType<I>;
+  output: z.ZodType<O>;
+  execute(input: I): Promise<O>;
+}
+
+export function capabilityToTool<I, O>(capability: Capability<I, O>, ctx: ConnectorContext): CapabilityTool<I, O> {
+  return {
+    id: capability.id,
+    description: `${capability.name} (${capability.kind})`,
+    input: capability.input,
+    output: capability.output,
+    execute: (input) => capability.execute(ctx, input)
+  };
 }

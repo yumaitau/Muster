@@ -1,4 +1,21 @@
-import { artifacts, auditLog, connectorConnections, desc, eq, getDb, organisations, roles, runs } from "@muster/db";
+import {
+  approvals,
+  artifacts,
+  auditLog,
+  campaigns,
+  connectorConnections,
+  contentAssets,
+  desc,
+  eq,
+  getDb,
+  messageDeliveries,
+  messages,
+  organisations,
+  roles,
+  runActions,
+  runs,
+  tasks
+} from "@muster/db";
 
 export async function getCurrentOrg() {
   const db = getDb();
@@ -40,4 +57,38 @@ export async function getRunDetails(roleId: string) {
     ? await db.select().from(auditLog).where(eq(auditLog.runId, latestRun.id)).orderBy(desc(auditLog.createdAt))
     : [];
   return { org, runs: roleRuns, audits };
+}
+
+export async function getApprovalQueue() {
+  const db = getDb();
+  const org = await getCurrentOrg();
+  if (!org) return { org: null, approvals: [] };
+  const rows = await db
+    .select({ approval: approvals, action: runActions, run: runs, role: roles })
+    .from(approvals)
+    .innerJoin(runActions, eq(approvals.runActionId, runActions.id))
+    .innerJoin(runs, eq(runActions.runId, runs.id))
+    .innerJoin(roles, eq(runs.roleId, roles.id))
+    .where(eq(approvals.orgId, org.id))
+    .orderBy(desc(approvals.createdAt));
+  return { org, approvals: rows };
+}
+
+export async function getMessagesData() {
+  const db = getDb();
+  const org = await getCurrentOrg();
+  if (!org) return { org: null, messages: [], deliveries: [] };
+  const messageRows = await db.select().from(messages).where(eq(messages.orgId, org.id)).orderBy(desc(messages.createdAt));
+  const deliveryRows = await db.select().from(messageDeliveries).where(eq(messageDeliveries.orgId, org.id)).orderBy(desc(messageDeliveries.createdAt));
+  return { org, messages: messageRows, deliveries: deliveryRows };
+}
+
+export async function getAdminData() {
+  const db = getDb();
+  const org = await getCurrentOrg();
+  if (!org) return { org: null, tasks: [], campaigns: [], assets: [] };
+  const taskRows = await db.select().from(tasks).where(eq(tasks.orgId, org.id)).orderBy(desc(tasks.createdAt));
+  const campaignRows = await db.select().from(campaigns).where(eq(campaigns.orgId, org.id)).orderBy(desc(campaigns.createdAt));
+  const assetRows = await db.select().from(contentAssets).where(eq(contentAssets.orgId, org.id)).orderBy(desc(contentAssets.createdAt));
+  return { org, tasks: taskRows, campaigns: campaignRows, assets: assetRows };
 }

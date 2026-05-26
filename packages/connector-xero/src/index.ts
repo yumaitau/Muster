@@ -19,6 +19,23 @@ export const balanceSheetOutputSchema = z.object({
   fetchedAt: z.string()
 });
 
+export const draftBillInputSchema = z.object({
+  supplier: z.string(),
+  amount: z.number(),
+  date: z.string(),
+  dueDate: z.string().optional(),
+  accountCode: z.string().optional(),
+  lineItems: z
+    .array(z.object({ description: z.string(), quantity: z.number().default(1), unitAmount: z.number(), accountCode: z.string().optional() }))
+    .default([])
+});
+
+export const draftBillOutputSchema = z.object({
+  billId: z.string().optional(),
+  status: z.string(),
+  raw: z.unknown().optional()
+});
+
 function createClient(credentials: XeroCredentials) {
   const client = new XeroClient({
     clientId: process.env.XERO_CLIENT_ID ?? "",
@@ -58,6 +75,43 @@ export const balanceSheetCapability = defineCapability({
   }
 });
 
+export const createDraftBillCapability = defineCapability({
+  id: "xero.bill.create_draft",
+  name: "Create draft bill",
+  kind: "write",
+  autonomyFloor: 1,
+  requiresApproval: true,
+  input: draftBillInputSchema,
+  output: draftBillOutputSchema,
+  async execute(ctx: ConnectorContext<XeroCredentials>, input) {
+    const credentials = xeroCredentialsSchema.parse(ctx.credentials);
+    const client = createClient(credentials);
+    const lineItems =
+      input.lineItems.length > 0
+        ? input.lineItems.map((line) => ({
+            description: line.description,
+            quantity: line.quantity,
+            unitAmount: line.unitAmount,
+            ...(line.accountCode ?? input.accountCode ? { accountCode: line.accountCode ?? input.accountCode } : {})
+          }))
+        : [{ description: "Supplier invoice", quantity: 1, unitAmount: input.amount, ...(input.accountCode ? { accountCode: input.accountCode } : {}) }];
+    const response = await client.accountingApi.createInvoices(credentials.tenantId, {
+      invoices: [
+        {
+          type: "ACCPAY",
+          status: "DRAFT",
+          contact: { name: input.supplier },
+          date: input.date,
+          dueDate: input.dueDate,
+          lineItems
+        }
+      ]
+    } as never);
+    const invoice = response.body.invoices?.[0];
+    return { billId: invoice?.invoiceID, status: String(invoice?.status ?? "DRAFT"), raw: invoice };
+  }
+});
+
 export const xeroConnector = defineConnector({
   id: "xero",
   name: "Xero",
@@ -68,7 +122,7 @@ export const xeroConnector = defineConnector({
     tokenUrl: "https://identity.xero.com/connect/token",
     scopes: ["openid", "profile", "email", "accounting.reports.read", "offline_access"]
   },
-  capabilities: [balanceSheetCapability],
+  capabilities: [balanceSheetCapability, createDraftBillCapability],
   canonicalEntities: [
     {
       entity: "financial_report",

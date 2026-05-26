@@ -9,6 +9,9 @@ export const actionKind = pgEnum("action_kind", ["read", "write"]);
 export const actionStatus = pgEnum("action_status", ["proposed", "approved", "rejected", "executed", "failed"]);
 export const approvalStatus = pgEnum("approval_status", ["pending", "approved", "rejected"]);
 export const actorType = pgEnum("actor_type", ["system", "role", "user"]);
+export const deliveryStatus = pgEnum("delivery_status", ["queued", "sent", "failed"]);
+export const intakeStatus = pgEnum("intake_status", ["received", "processing", "queued_for_approval", "failed", "completed"]);
+export const taskStatus = pgEnum("task_status", ["open", "in_progress", "done", "blocked"]);
 
 export const organisations = pgTable("organisations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -93,6 +96,77 @@ export const roles = pgTable("roles", {
   schedule: text("schedule"),
   config: jsonb("config").$type<Record<string, unknown>>().notNull().default({}),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const messages = pgTable("messages", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  subject: text("subject").notNull(),
+  body: text("body").notNull(),
+  targetChannels: jsonb("target_channels").$type<string[]>().notNull().default([]),
+  status: text("status").notNull().default("draft"),
+  createdBy: text("created_by"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const messageDeliveries = pgTable("message_deliveries", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  messageId: uuid("message_id").notNull().references(() => messages.id, { onDelete: "cascade" }),
+  connectorId: text("connector_id").notNull(),
+  capabilityId: text("capability_id").notNull(),
+  status: deliveryStatus("status").notNull().default("queued"),
+  result: jsonb("result").$type<Record<string, unknown> | null>(),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const campaigns = pgTable("campaigns", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  name: text("name").notNull(),
+  description: text("description"),
+  startsAt: timestamp("starts_at", { withTimezone: true }),
+  endsAt: timestamp("ends_at", { withTimezone: true }),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const contentAssets = pgTable("content_assets", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  campaignId: uuid("campaign_id").references(() => campaigns.id, { onDelete: "set null" }),
+  messageId: uuid("message_id").references(() => messages.id, { onDelete: "set null" }),
+  title: text("title").notNull(),
+  type: text("type").notNull(),
+  storageKey: text("storage_key").notNull(),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const tasks = pgTable("tasks", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  externalId: text("external_id"),
+  sourceConnectorId: text("source_connector_id"),
+  title: text("title").notNull(),
+  assignee: text("assignee"),
+  dueAt: timestamp("due_at", { withTimezone: true }),
+  status: taskStatus("status").notNull().default("open"),
+  metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const intakeItems = pgTable("intake_items", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  source: text("source").notNull(),
+  status: intakeStatus("status").notNull().default("received"),
+  storageKey: text("storage_key"),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
 export const roleConnectorBindings = pgTable("role_connector_bindings", {

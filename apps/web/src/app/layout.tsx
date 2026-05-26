@@ -18,6 +18,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
               <Link href="/">Dashboard</Link>
               <Link href="/connectors">Connectors</Link>
               <Link href="/roles">Roles</Link>
+              <Link href="/approvals">Approvals</Link>
+              <Link href="/messages">Messages</Link>
+              <Link href="/admin">Admin</Link>
+              <Link href="/chat">Chat</Link>
               <Link href="/setup">Setup</Link>
             </div>
           </nav>

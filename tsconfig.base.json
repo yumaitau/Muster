@@ -21,6 +21,10 @@
       "@muster/db": ["packages/db/src/index.ts"],
       "@muster/connector-sdk": ["packages/connector-sdk/src/index.ts"],
       "@muster/connector-xero": ["packages/connector-xero/src/index.ts"],
+      "@muster/connector-clicksend": ["packages/connector-clicksend/src/index.ts"],
+      "@muster/connector-meta": ["packages/connector-meta/src/index.ts"],
+      "@muster/connector-canva": ["packages/connector-canva/src/index.ts"],
+      "@muster/connector-monday": ["packages/connector-monday/src/index.ts"],
       "@muster/adapter-auth-betterauth": ["packages/adapter-auth-betterauth/src/index.ts"],
       "@muster/adapter-storage-s3": ["packages/adapter-storage-s3/src/index.ts"],
       "@muster/adapter-model": ["packages/adapter-model/src/index.ts"]

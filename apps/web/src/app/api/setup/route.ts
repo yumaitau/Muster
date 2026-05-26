@@ -33,6 +33,11 @@ export async function POST(request: Request) {
     schedule: "0 9 * * 1",
     config: {}
   });
+  await db.insert(roles).values([
+    { orgId: org.id, roleType: "comms", name: "Comms", enabled: false, autonomyCeiling: 0, schedule: null, config: {} },
+    { orgId: org.id, roleType: "content", name: "Content", enabled: false, autonomyCeiling: 0, schedule: null, config: {} },
+    { orgId: org.id, roleType: "admin", name: "Admin", enabled: false, autonomyCeiling: 0, schedule: "0 9 * * 1", config: {} }
+  ]);
 
   return NextResponse.redirect(new URL("/", request.url), { status: 303 });
 }

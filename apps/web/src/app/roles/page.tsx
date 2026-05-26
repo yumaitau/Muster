@@ -41,6 +41,12 @@ export default async function RolesPage() {
               <input name="schedule" defaultValue={role.schedule ?? "0 9 * * 1"} aria-label="Cron schedule" />
               <button className="button secondary" type="submit">Save</button>
             </form>
+            {role.roleType === "finance" && (
+              <form action="/api/finance/invoices" method="post" className="mt-5 grid max-w-2xl gap-3">
+                <textarea name="description" className="min-h-24 rounded-md border border-[var(--line)] bg-transparent p-3 text-sm" placeholder="Paste supplier invoice details for draft bill extraction" />
+                <button className="button secondary w-fit" type="submit">Queue draft bill</button>
+              </form>
+            )}
           </div>
         ))}
       </div>

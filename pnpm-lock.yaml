@@ -35,6 +35,18 @@ importers:
       '@muster/adapter-storage-s3':
         specifier: workspace:*
         version: link:../../packages/adapter-storage-s3
+      '@muster/connector-canva':
+        specifier: workspace:*
+        version: link:../../packages/connector-canva
+      '@muster/connector-clicksend':
+        specifier: workspace:*
+        version: link:../../packages/connector-clicksend
+      '@muster/connector-meta':
+        specifier: workspace:*
+        version: link:../../packages/connector-meta
+      '@muster/connector-monday':
+        specifier: workspace:*
+        version: link:../../packages/connector-monday
       '@muster/connector-xero':
         specifier: workspace:*
         version: link:../../packages/connector-xero
@@ -127,6 +139,42 @@ importers:
       '@muster/core':
         specifier: workspace:*
         version: link:../core
+
+  packages/connector-canva:
+    dependencies:
+      '@muster/connector-sdk':
+        specifier: workspace:*
+        version: link:../connector-sdk
+      zod:
+        specifier: 4.3.0
+        version: 4.3.0
+
+  packages/connector-clicksend:
+    dependencies:
+      '@muster/connector-sdk':
+        specifier: workspace:*
+        version: link:../connector-sdk
+      zod:
+        specifier: 4.3.0
+        version: 4.3.0
+
+  packages/connector-meta:
+    dependencies:
+      '@muster/connector-sdk':
+        specifier: workspace:*
+        version: link:../connector-sdk
+      zod:
+        specifier: 4.3.0
+        version: 4.3.0
+
+  packages/connector-monday:
+    dependencies:
+      '@muster/connector-sdk':
+        specifier: workspace:*
+        version: link:../connector-sdk
+      zod:
+        specifier: 4.3.0
+        version: 4.3.0
 
   packages/connector-sdk:
     dependencies:

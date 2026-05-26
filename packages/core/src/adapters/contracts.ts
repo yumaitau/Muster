@@ -25,8 +25,17 @@ export interface GenerateTextInput {
   model?: string;
 }
 
+export interface ModelTool<I = unknown, O = unknown> {
+  id: string;
+  description: string;
+  inputSchema: z.ZodType<I>;
+  outputSchema: z.ZodType<O>;
+  execute(input: I): Promise<O>;
+}
+
 export interface ModelAdapter {
   generateText(input: GenerateTextInput): Promise<{ text: string }>;
   generateObject<T>(input: GenerateTextInput & { schema: z.ZodType<T> }): Promise<T>;
   streamText(input: GenerateTextInput): AsyncIterable<string>;
+  generateWithTools?(input: GenerateTextInput & { tools: ModelTool[]; maxSteps?: number }): Promise<{ text: string; toolCalls: Array<{ toolId: string; input: unknown; output: unknown }> }>;
 }
