@@ -4,6 +4,7 @@ import type { MusterDb } from "@muster/db";
 import {
   artifacts,
   auditLog,
+  backgroundJobs,
   connectorConnections,
   organisations,
   roleConnectorBindings,
@@ -27,6 +28,7 @@ export interface RunRoleInput {
   roleId: string;
   procedureId: string;
   triggerSource: "schedule" | "manual" | "webhook";
+  backgroundJobId?: string;
 }
 
 async function writeAudit(db: MusterDb, input: { orgId: string; runId?: string; action: string; detail?: Record<string, unknown> }) {
@@ -40,14 +42,24 @@ async function writeAudit(db: MusterDb, input: { orgId: string; runId?: string; 
   });
 }
 
+async function markBackgroundJobFailed(db: MusterDb, backgroundJobId: string | undefined, error: string) {
+  if (!backgroundJobId) return;
+  await db
+    .update(backgroundJobs)
+    .set({ status: "failed", error, finishedAt: new Date(), updatedAt: new Date() })
+    .where(eq(backgroundJobs.id, backgroundJobId));
+}
+
 export async function runRoleProcedure(deps: RunEngineDeps, input: RunRoleInput) {
   const { db, model, storage } = deps;
   const [role] = await db.select().from(roles).where(and(eq(roles.id, input.roleId), eq(roles.orgId, input.orgId))).limit(1);
   if (!role) {
+    await markBackgroundJobFailed(db, input.backgroundJobId, "Role not found");
     throw new Error("Role not found");
   }
   const [org] = await db.select().from(organisations).where(eq(organisations.id, input.orgId)).limit(1);
   if (!org) {
+    await markBackgroundJobFailed(db, input.backgroundJobId, "Organisation not found");
     throw new Error("Organisation not found");
   }
 
@@ -64,10 +76,18 @@ export async function runRoleProcedure(deps: RunEngineDeps, input: RunRoleInput)
     .returning();
 
   if (!run) {
+    await markBackgroundJobFailed(db, input.backgroundJobId, "Failed to create run");
     throw new Error("Failed to create run");
   }
 
   try {
+    if (input.backgroundJobId) {
+      await db
+        .update(backgroundJobs)
+        .set({ status: "running", runId: run.id, startedAt: new Date(), updatedAt: new Date() })
+        .where(eq(backgroundJobs.id, input.backgroundJobId));
+    }
+
     await writeAudit(db, { orgId: input.orgId, runId: run.id, action: "run.started", detail: { procedureId: input.procedureId } });
 
     if (input.procedureId !== WEEKLY_FINANCE_REPORT_PROCEDURE) {
@@ -154,11 +174,23 @@ export async function runRoleProcedure(deps: RunEngineDeps, input: RunRoleInput)
     });
 
     await db.update(runs).set({ status: "succeeded", finishedAt: new Date() }).where(eq(runs.id, run.id));
+    if (input.backgroundJobId) {
+      await db
+        .update(backgroundJobs)
+        .set({
+          status: "succeeded",
+          result: { runId: run.id, artifactId: artifact?.id ?? null },
+          finishedAt: new Date(),
+          updatedAt: new Date()
+        })
+        .where(eq(backgroundJobs.id, input.backgroundJobId));
+    }
     await writeAudit(db, { orgId: input.orgId, runId: run.id, action: "run.succeeded" });
     return { runId: run.id, artifactId: artifact?.id };
   } catch (error) {
     const message = error instanceof Error ? error.message : "Unknown error";
     await db.update(runs).set({ status: "failed", finishedAt: new Date(), error: message }).where(eq(runs.id, run.id));
+    await markBackgroundJobFailed(db, input.backgroundJobId, message);
     await writeAudit(db, { orgId: input.orgId, runId: run.id, action: "run.failed", detail: { error: message } });
     throw error;
   }

@@ -1,58 +1,189 @@
 import Link from "next/link";
-import { Play } from "lucide-react";
+import { AlertTriangle, CheckCircle2, ClipboardList, Clock3, Play, ShieldCheck } from "lucide-react";
 import { getDashboardData } from "../lib/data";
+import { taskAutomationSummary } from "../lib/business-playbooks";
 
 export const dynamic = "force-dynamic";
 
 export default async function HomePage() {
-  const { org, report, runs } = await getDashboardData();
+  const { org, report, runs, roles, connections, approvals, jobs, audits, tasks } = await getDashboardData();
   if (!org) {
     return (
       <section>
-        <h1 className="text-3xl font-bold">First run setup</h1>
-        <p className="mt-3 max-w-2xl text-sm">Create the organisation and owner account before connecting Xero.</p>
+        <h1 className="page-title">First run setup</h1>
+        <p className="lede">Create the organisation and owner account before connecting your first system.</p>
         <Link href="/setup" className="button mt-6">Start setup</Link>
       </section>
     );
   }
 
   const content = report?.content as { narrative?: string; generatedAt?: string } | undefined;
+  const connectedCount = connections.filter((connection) => connection.status === "connected").length;
+  const pendingApprovals = approvals.filter((approval) => approval.status === "pending").length;
+  const activeJobs = jobs.filter(({ job }) => job.status === "queued" || job.status === "running");
+  const lastFailedJob = jobs.find(({ job }) => job.status === "failed");
+  const taskSummary = taskAutomationSummary(tasks);
+
   return (
-    <section>
+    <section className="grid gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-bold">{org.name}</h1>
-          <p className="mt-2 text-sm text-neutral-700">Latest finance position and recent automation runs.</p>
+          <h1 className="page-title">{org.name}</h1>
+          <p className="lede">Agent command centre for finance, communications, content, and admin work.</p>
         </div>
-        <Link href="/roles" className="button"><Play size={16} /> Run finance report</Link>
+        <div className="flex flex-wrap gap-2">
+          <Link href="/jobs" className="button secondary"><Clock3 size={16} /> Operations</Link>
+          <Link href="/roles" className="button"><Play size={16} /> Queue work</Link>
+        </div>
       </div>
 
-      <div className="panel mt-8 p-6">
-        <h2 className="text-xl font-bold">Latest finance report</h2>
-        {report ? (
-          <>
-            <p className="mt-1 text-sm text-neutral-600">{content?.generatedAt ? new Date(content.generatedAt).toLocaleString("en-AU") : ""}</p>
-            <p className="mt-5 max-w-3xl leading-7">{content?.narrative}</p>
-            <Link href={`/reports/${report.id}`} className="button secondary mt-5">Open report</Link>
-          </>
-        ) : (
-          <p className="mt-4 text-sm">No finance report has been generated yet.</p>
-        )}
+      <div className="metric-grid">
+        <div className="metric">
+          <span>Agents enabled</span>
+          <strong>{roles.filter((role) => role.enabled).length}/{roles.length}</strong>
+        </div>
+        <div className="metric">
+          <span>Jobs in flight</span>
+          <strong>{activeJobs.length}</strong>
+        </div>
+        <div className="metric">
+          <span>Approvals pending</span>
+          <strong>{pendingApprovals}</strong>
+        </div>
+        <div className="metric">
+          <span>Connected systems</span>
+          <strong>{connectedCount}</strong>
+        </div>
       </div>
 
-      <div className="mt-8">
-        <h2 className="text-xl font-bold">Recent runs</h2>
-        <div className="panel mt-3 divide-y divide-[var(--line)]">
-          {runs.map((run) => (
-            <div key={run.id} className="grid grid-cols-4 gap-3 p-4 text-sm">
-              <span>{run.procedureId}</span>
-              <span>{run.triggerSource}</span>
-              <span className="font-semibold">{run.status}</span>
-              <span>{run.createdAt.toLocaleString("en-AU")}</span>
+      {lastFailedJob && (
+        <div className="notice warning">
+          <AlertTriangle size={18} />
+          <div>
+            <strong>{lastFailedJob.role.name} needs attention.</strong>
+            <span>{lastFailedJob.job.error ?? "The last background job failed."}</span>
+          </div>
+        </div>
+      )}
+
+      {taskSummary.automatedCount === 0 && (
+        <div className="notice">
+          <ClipboardList size={18} />
+          <div>
+            <strong>Install operating playbooks to standardise recurring work.</strong>
+            <span>Admin can create ready-made finance, service, onboarding, campaign, event and governance task routines.</span>
+          </div>
+          <Link href="/admin" className="button secondary">Open admin</Link>
+        </div>
+      )}
+
+      <div className="dashboard-grid">
+        <section className="panel feature-panel">
+          <div className="section-heading">
+            <div>
+              <h2>Latest finance report</h2>
+              <p>{content?.generatedAt ? new Date(content.generatedAt).toLocaleString("en-AU") : "No report generated yet"}</p>
+            </div>
+            {report && <Link href={`/reports/${report.id}`} className="button secondary">Open report</Link>}
+          </div>
+          {report ? (
+            <p className="report-narrative">{content?.narrative}</p>
+          ) : (
+            <div className="empty-state">
+              <ShieldCheck size={22} />
+              <p>Connect Xero, enable Finance, then queue the first report.</p>
+            </div>
+          )}
+        </section>
+
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <h2>Agent status</h2>
+              <p>Current work by role.</p>
+            </div>
+          </div>
+          <div className="compact-list">
+            {roles.map((role) => {
+              const activeJob = activeJobs.find(({ job }) => job.roleId === role.id);
+              return (
+                <div key={role.id} className="compact-row">
+                  <div>
+                    <strong>{role.name}</strong>
+                    <span>{role.roleType} · tier {role.autonomyCeiling}</span>
+                  </div>
+                  <span className={`status status-${activeJob?.job.status ?? (role.enabled ? "idle" : "offline")}`}>
+                    {activeJob?.job.status ?? (role.enabled ? "idle" : "offline")}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </section>
+      </div>
+
+      <div className="dashboard-grid">
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <h2>Recent background jobs</h2>
+              <p>What has been queued and how it finished.</p>
+            </div>
+            <Link href="/jobs" className="button secondary">View all</Link>
+          </div>
+          <div className="compact-list">
+            {jobs.map(({ job, role }) => (
+              <div key={job.id} className="compact-row">
+                <div>
+                  <strong>{job.type.replaceAll("-", " ")}</strong>
+                  <span>{role.name} · {job.triggerSource} · {job.createdAt.toLocaleString("en-AU")}</span>
+                </div>
+                <span className={`status status-${job.status}`}>{job.status}</span>
+              </div>
+            ))}
+            {jobs.length === 0 && <p className="empty">No background jobs yet.</p>}
+          </div>
+        </section>
+
+        <section className="panel">
+          <div className="section-heading">
+            <div>
+              <h2>Recent runs</h2>
+              <p>Run records created by the engine.</p>
+            </div>
+          </div>
+          <div className="compact-list">
+            {runs.map(({ run, role }) => (
+              <div key={run.id} className="compact-row">
+                <div>
+                  <strong>{run.procedureId}</strong>
+                  <span>{role.name} · {run.createdAt.toLocaleString("en-AU")}</span>
+                </div>
+                {run.status === "succeeded" ? <CheckCircle2 size={16} /> : <span className={`status status-${run.status}`}>{run.status}</span>}
+              </div>
+            ))}
+            {runs.length === 0 && <p className="empty">Runs will appear after a job starts.</p>}
+          </div>
+        </section>
+      </div>
+
+      <section className="panel">
+        <div className="section-heading">
+          <div>
+            <h2>Audit trail</h2>
+            <p>Latest events from agents and connectors.</p>
+          </div>
+        </div>
+        <div className="activity-list">
+          {audits.map((entry) => (
+            <div key={entry.id} className="activity-row">
+              <span>{entry.createdAt.toLocaleString("en-AU")}</span>
+              <strong>{entry.action}</strong>
+              <code>{JSON.stringify(entry.detail)}</code>
             </div>
           ))}
         </div>
-      </div>
+      </section>
     </section>
   );
 }

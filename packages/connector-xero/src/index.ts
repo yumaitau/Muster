@@ -36,12 +36,32 @@ export const draftBillOutputSchema = z.object({
   raw: z.unknown().optional()
 });
 
+export const fileUploadInputSchema = z.object({
+  fileName: z.string().min(1),
+  mimeType: z.string().min(1),
+  fileContentBase64: z.string().min(1),
+  idempotencyKey: z.string().max(128).optional()
+});
+
+export const fileUploadOutputSchema = z.object({
+  fileId: z.string().optional(),
+  name: z.string().optional(),
+  mimeType: z.string().optional(),
+  size: z.number().optional()
+});
+
+const defaultScopes = ["openid", "profile", "email", "accounting.reports.read", "accounting.transactions", "files", "offline_access"];
+
+function xeroScopes() {
+  return (process.env.XERO_SCOPES ?? defaultScopes.join(" ")).split(/\s+/).filter(Boolean);
+}
+
 function createClient(credentials: XeroCredentials) {
   const client = new XeroClient({
     clientId: process.env.XERO_CLIENT_ID ?? "",
     clientSecret: process.env.XERO_CLIENT_SECRET ?? "",
     redirectUris: [process.env.XERO_REDIRECT_URI ?? "http://localhost:3000/api/connectors/xero/callback"],
-    scopes: ["openid", "profile", "email", "accounting.reports.read", "offline_access"]
+    scopes: xeroScopes()
   });
   const tokenSet: Record<string, string | number> = {
     access_token: credentials.accessToken,
@@ -112,17 +132,46 @@ export const createDraftBillCapability = defineCapability({
   }
 });
 
+export const uploadFileCapability = defineCapability({
+  id: "xero.files.upload",
+  name: "Upload file to Xero inbox",
+  kind: "write",
+  autonomyFloor: 0,
+  requiresApproval: false,
+  input: fileUploadInputSchema,
+  output: fileUploadOutputSchema,
+  async execute(ctx: ConnectorContext<XeroCredentials>, input) {
+    const credentials = xeroCredentialsSchema.parse(ctx.credentials);
+    const client = createClient(credentials);
+    const response = await client.filesApi.uploadFile(
+      credentials.tenantId,
+      Buffer.from(input.fileContentBase64, "base64"),
+      input.fileName,
+      input.fileName,
+      input.idempotencyKey,
+      input.mimeType
+    );
+    const file = response.body;
+    return {
+      fileId: file.id,
+      name: file.name,
+      mimeType: file.mimeType,
+      size: file.size
+    };
+  }
+});
+
 export const xeroConnector = defineConnector({
   id: "xero",
   name: "Xero",
-  description: "Reads finance reports from a connected Xero organisation.",
+  description: "Reads finance reports and files supplier invoices in a connected Xero organisation.",
   auth: {
     type: "oauth2",
     authorizationUrl: "https://login.xero.com/identity/connect/authorize",
     tokenUrl: "https://identity.xero.com/connect/token",
-    scopes: ["openid", "profile", "email", "accounting.reports.read", "offline_access"]
+    scopes: xeroScopes()
   },
-  capabilities: [balanceSheetCapability, createDraftBillCapability],
+  capabilities: [balanceSheetCapability, createDraftBillCapability, uploadFileCapability],
   canonicalEntities: [
     {
       entity: "financial_report",
@@ -143,7 +192,7 @@ export function createXeroAuthorizationUrl(state: string) {
     response_type: "code",
     client_id: process.env.XERO_CLIENT_ID ?? "",
     redirect_uri: process.env.XERO_REDIRECT_URI ?? "http://localhost:3000/api/connectors/xero/callback",
-    scope: "openid profile email accounting.reports.read offline_access",
+    scope: xeroScopes().join(" "),
     state
   });
   return `https://login.xero.com/identity/connect/authorize?${params.toString()}`;
@@ -154,7 +203,7 @@ export async function exchangeXeroCode(code: string) {
     clientId: process.env.XERO_CLIENT_ID ?? "",
     clientSecret: process.env.XERO_CLIENT_SECRET ?? "",
     redirectUris: [process.env.XERO_REDIRECT_URI ?? "http://localhost:3000/api/connectors/xero/callback"],
-    scopes: ["openid", "profile", "email", "accounting.reports.read", "offline_access"]
+    scopes: xeroScopes()
   });
   const tokenSet = await client.apiCallback(`${process.env.XERO_REDIRECT_URI}?code=${code}`);
   await client.updateTenants();

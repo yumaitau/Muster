@@ -12,6 +12,7 @@ export const actorType = pgEnum("actor_type", ["system", "role", "user"]);
 export const deliveryStatus = pgEnum("delivery_status", ["queued", "sent", "failed"]);
 export const intakeStatus = pgEnum("intake_status", ["received", "processing", "queued_for_approval", "failed", "completed"]);
 export const taskStatus = pgEnum("task_status", ["open", "in_progress", "done", "blocked"]);
+export const backgroundJobStatus = pgEnum("background_job_status", ["queued", "running", "succeeded", "failed", "cancelled"]);
 
 export const organisations = pgTable("organisations", {
   id: uuid("id").defaultRandom().primaryKey(),
@@ -185,6 +186,23 @@ export const runs = pgTable("runs", {
   finishedAt: timestamp("finished_at", { withTimezone: true }),
   error: text("error"),
   createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull()
+});
+
+export const backgroundJobs = pgTable("background_jobs", {
+  id: uuid("id").defaultRandom().primaryKey(),
+  orgId: uuid("org_id").notNull().references(() => organisations.id, { onDelete: "cascade" }),
+  roleId: uuid("role_id").notNull().references(() => roles.id, { onDelete: "cascade" }),
+  runId: uuid("run_id").references(() => runs.id, { onDelete: "set null" }),
+  type: text("type").notNull(),
+  status: backgroundJobStatus("status").notNull().default("queued"),
+  triggerSource: triggerSource("trigger_source").notNull(),
+  payload: jsonb("payload").$type<Record<string, unknown>>().notNull().default({}),
+  result: jsonb("result").$type<Record<string, unknown> | null>(),
+  error: text("error"),
+  createdAt: timestamp("created_at", { withTimezone: true }).defaultNow().notNull(),
+  startedAt: timestamp("started_at", { withTimezone: true }),
+  finishedAt: timestamp("finished_at", { withTimezone: true }),
+  updatedAt: timestamp("updated_at", { withTimezone: true }).defaultNow().notNull()
 });
 
 export const runActions = pgTable("run_actions", {

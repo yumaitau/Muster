@@ -4,7 +4,7 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   title: "Muster",
-  description: "Self-hosted back-office automation for community organisations."
+  description: "Agent operations platform for community organisations."
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -13,11 +13,13 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         <div className="shell">
           <nav className="nav">
-            <Link href="/" className="text-2xl font-bold">Muster</Link>
-            <div className="mt-8 grid gap-3 text-sm font-semibold">
+            <Link href="/" className="brand">Muster</Link>
+            <p className="brand-subtitle">Agent operations</p>
+            <div className="nav-group">
               <Link href="/">Dashboard</Link>
+              <Link href="/jobs">Operations</Link>
               <Link href="/connectors">Connectors</Link>
-              <Link href="/roles">Roles</Link>
+              <Link href="/roles">Agents</Link>
               <Link href="/approvals">Approvals</Link>
               <Link href="/messages">Messages</Link>
               <Link href="/admin">Admin</Link>

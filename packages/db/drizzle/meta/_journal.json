@@ -15,6 +15,13 @@
       "when": 1779802854801,
       "tag": "0001_perfect_husk",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1779944362782,
+      "tag": "0002_background_jobs",
+      "breakpoints": true
     }
   ]
 }

@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { createXeroAuthorizationUrl, exchangeXeroCode } from "@muster/connector-xero";
 import { encryptJson } from "@muster/core";
-import { connectorConnections, eq, getDb, organisations } from "@muster/db";
+import { and, connectorConnections, eq, getDb, organisations, roleConnectorBindings, roles } from "@muster/db";
 
 export async function GET(request: Request) {
   const url = new URL(request.url);
@@ -24,14 +24,19 @@ export async function GET(request: Request) {
   }
 
   const result = await exchangeXeroCode(code);
-  await db.insert(connectorConnections).values({
+  const [connection] = await db.insert(connectorConnections).values({
     orgId: state,
     connectorId: "xero",
     displayName: result.tenantName,
     status: "connected",
     authData: encryptJson(result.credentials),
     metadata: { tenantName: result.tenantName }
-  });
+  }).returning();
+
+  const [financeRole] = await db.select().from(roles).where(and(eq(roles.orgId, state), eq(roles.roleType, "finance"))).limit(1);
+  if (connection && financeRole) {
+    await db.insert(roleConnectorBindings).values({ roleId: financeRole.id, connectorConnectionId: connection.id });
+  }
 
   return NextResponse.redirect(new URL("/connectors", request.url), { status: 303 });
 }

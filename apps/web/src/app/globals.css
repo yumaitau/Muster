@@ -1,45 +1,127 @@
 @import "tailwindcss";
 
 :root {
-  --background: oklch(0.985 0.008 120);
-  --foreground: oklch(0.18 0.018 145);
-  --muted: oklch(0.93 0.012 125);
-  --line: oklch(0.82 0.016 130);
-  --accent: oklch(0.48 0.12 145);
+  --background: oklch(0.975 0.006 155);
+  --surface: oklch(0.992 0.004 150);
+  --surface-2: oklch(0.948 0.008 155);
+  --foreground: oklch(0.18 0.018 155);
+  --muted: oklch(0.925 0.012 155);
+  --muted-foreground: oklch(0.46 0.018 155);
+  --line: oklch(0.835 0.014 155);
+  --accent: oklch(0.47 0.12 158);
+  --accent-strong: oklch(0.38 0.12 158);
+  --danger: oklch(0.52 0.16 28);
+  --warning: oklch(0.64 0.12 72);
+  --success: oklch(0.48 0.11 150);
+  --info: oklch(0.49 0.1 230);
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", system-ui, sans-serif;
+  margin: 0;
 }
 
 a {
   color: inherit;
+  text-decoration: none;
 }
 
 .shell {
   min-height: 100vh;
   display: grid;
-  grid-template-columns: 240px 1fr;
+  grid-template-columns: 248px 1fr;
 }
 
 .nav {
   border-right: 1px solid var(--line);
-  background: oklch(0.955 0.011 125);
-  padding: 28px 20px;
+  background: var(--surface-2);
+  padding: 28px 18px;
+}
+
+.brand {
+  display: block;
+  font-size: 1.35rem;
+  font-weight: 800;
+  line-height: 1;
+}
+
+.brand-subtitle {
+  margin-top: 8px;
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.nav-group {
+  display: grid;
+  gap: 4px;
+  margin-top: 30px;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.nav-group a {
+  border-radius: 6px;
+  color: var(--muted-foreground);
+  padding: 9px 10px;
+}
+
+.nav-group a:hover,
+.nav-group a:focus-visible {
+  background: var(--muted);
+  color: var(--foreground);
+  outline: none;
 }
 
 .content {
-  padding: 32px;
-  max-width: 1180px;
+  padding: 34px;
+  max-width: 1280px;
   width: 100%;
+}
+
+.page-title {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  line-height: 1.15;
+}
+
+.lede {
+  color: var(--muted-foreground);
+  font-size: 0.95rem;
+  line-height: 1.6;
+  margin-top: 10px;
+  max-width: 68ch;
 }
 
 .panel {
   border: 1px solid var(--line);
   border-radius: 8px;
-  background: oklch(0.995 0.004 120);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.section-heading {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px 20px;
+}
+
+.section-heading h2 {
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.section-heading p {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  margin-top: 4px;
 }
 
 .button {
@@ -47,23 +129,394 @@ a {
   align-items: center;
   gap: 8px;
   border-radius: 6px;
+  border: 1px solid transparent;
   background: var(--accent);
-  color: oklch(0.985 0.006 145);
+  color: oklch(0.985 0.006 155);
   padding: 9px 12px;
   font-weight: 700;
+  line-height: 1;
+  min-height: 38px;
+  transition: background 180ms ease-out, border-color 180ms ease-out, color 180ms ease-out;
+}
+
+.button:hover,
+.button:focus-visible {
+  background: var(--accent-strong);
+  outline: none;
 }
 
 .button.secondary {
   color: var(--foreground);
   background: var(--muted);
+  border-color: var(--line);
+}
+
+.button.secondary:hover,
+.button.secondary:focus-visible {
+  background: oklch(0.9 0.014 155);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 input,
-select {
+select,
+textarea {
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 9px 10px;
-  background: oklch(0.995 0.004 120);
+  background: var(--surface);
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--accent);
+  outline: 2px solid oklch(0.85 0.06 155);
+}
+
+.metric-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.metric {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 16px;
+}
+
+.metric span {
+  color: var(--muted-foreground);
+  display: block;
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.metric strong {
+  display: block;
+  font-size: 1.8rem;
+  line-height: 1.1;
+  margin-top: 8px;
+}
+
+.dashboard-grid {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 1.35fr) minmax(340px, 0.65fr);
+}
+
+.feature-panel {
+  min-height: 280px;
+}
+
+.report-narrative {
+  font-size: 1rem;
+  line-height: 1.75;
+  max-width: 78ch;
+  padding: 22px;
+}
+
+.empty-state,
+.empty {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+  padding: 20px;
+}
+
+.empty-state {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.notice {
+  align-items: flex-start;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  display: flex;
+  gap: 12px;
+  padding: 14px 16px;
+}
+
+.notice strong,
+.notice span {
+  display: block;
+}
+
+.notice > div {
+  flex: 1;
+}
+
+.notice span {
+  color: var(--muted-foreground);
+  font-size: 0.88rem;
+  margin-top: 3px;
+}
+
+.notice.warning {
+  background: oklch(0.955 0.025 72);
+  border-color: oklch(0.82 0.06 72);
+}
+
+.compact-list,
+.agent-list,
+.activity-list,
+.job-table,
+.task-table {
+  display: grid;
+}
+
+.compact-row,
+.agent-row,
+.job-row,
+.activity-row,
+.task-row {
+  align-items: center;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 12px;
+  padding: 14px 18px;
+}
+
+.compact-row:first-child,
+.agent-row:first-child,
+.job-row:first-child,
+.activity-row:first-child,
+.task-row:first-child {
+  border-top: 0;
+}
+
+.compact-row {
+  grid-template-columns: 1fr auto;
+}
+
+.compact-row strong,
+.compact-row span {
+  display: block;
+}
+
+.compact-row span,
+.row-meta {
+  color: var(--muted-foreground);
+  font-size: 0.82rem;
+  margin-top: 3px;
+}
+
+.agent-row {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.row-title {
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.row-right {
+  align-items: flex-end;
+  display: grid;
+  justify-items: end;
+}
+
+.job-row {
+  grid-template-columns: minmax(260px, 1fr) 110px 110px 90px;
+}
+
+.job-main {
+  align-items: flex-start;
+  display: flex;
+  gap: 10px;
+}
+
+.job-error {
+  color: var(--danger);
+  font-size: 0.82rem;
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.activity-row {
+  grid-template-columns: 180px 240px minmax(0, 1fr);
+  font-size: 0.85rem;
+}
+
+.activity-row span {
+  color: var(--muted-foreground);
+}
+
+.activity-row code {
+  background: var(--muted);
+  border-radius: 6px;
+  overflow: auto;
+  padding: 6px 8px;
+  white-space: nowrap;
+}
+
+.task-row {
+  grid-template-columns: minmax(260px, 1fr) 150px 130px 110px;
+  font-size: 0.9rem;
+}
+
+.task-row > span:not(.status) {
+  color: var(--muted-foreground);
+  font-size: 0.84rem;
+}
+
+.playbook-grid {
+  display: grid;
+  gap: 0;
+}
+
+.playbook-option {
+  align-items: start;
+  border-top: 1px solid var(--line);
+  cursor: pointer;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 22px minmax(0, 1fr) auto;
+  padding: 16px 18px;
+}
+
+.playbook-option:first-child {
+  border-top: 0;
+}
+
+.playbook-option:has(input:disabled) {
+  cursor: default;
+}
+
+.playbook-option input {
+  margin-top: 3px;
+}
+
+.playbook-option strong,
+.playbook-option small,
+.playbook-option em {
+  display: block;
+}
+
+.playbook-option small {
+  color: var(--muted-foreground);
+  font-size: 0.78rem;
+  font-style: normal;
+  font-weight: 700;
+  margin-top: 4px;
+  text-transform: uppercase;
+}
+
+.playbook-option em {
+  color: var(--muted-foreground);
+  font-size: 0.86rem;
+  font-style: normal;
+  line-height: 1.5;
+  margin-top: 6px;
+  max-width: 76ch;
+}
+
+.playbook-actions {
+  border-top: 1px solid var(--line);
+  padding: 16px 18px;
+}
+
+.connector-form {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  padding: 18px;
+}
+
+.connector-form label {
+  display: grid;
+  gap: 7px;
+  font-size: 0.84rem;
+  font-weight: 800;
+}
+
+.connector-form label span {
+  color: var(--muted-foreground);
+}
+
+.connector-form .wide,
+.form-actions {
+  grid-column: 1 / -1;
+}
+
+.connector-form textarea {
+  min-height: 92px;
+}
+
+.checkbox-row {
+  align-items: center;
+  display: flex !important;
+  font-weight: 700 !important;
+}
+
+.custom-api-list {
+  display: grid;
+}
+
+.custom-api-row {
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(260px, 0.8fr) minmax(360px, 1.2fr);
+  padding: 18px;
+}
+
+.custom-api-row:first-child {
+  border-top: 0;
+}
+
+.custom-api-runner {
+  align-items: start;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.custom-api-runner textarea {
+  min-height: 82px;
+}
+
+.status {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.72rem;
+  font-weight: 800;
+  justify-content: center;
+  line-height: 1;
+  min-height: 24px;
+  padding: 5px 9px;
+  text-transform: uppercase;
+}
+
+.status-queued,
+.status-idle {
+  background: oklch(0.92 0.025 230);
+  color: oklch(0.36 0.09 230);
+}
+
+.status-running {
+  background: oklch(0.92 0.03 158);
+  color: oklch(0.35 0.1 158);
+}
+
+.status-succeeded {
+  background: oklch(0.92 0.035 150);
+  color: oklch(0.34 0.1 150);
+}
+
+.status-failed,
+.status-cancelled,
+.status-offline {
+  background: oklch(0.93 0.03 28);
+  color: var(--danger);
 }
 
 @media (max-width: 760px) {
@@ -73,8 +526,42 @@ select {
   .nav {
     border-right: 0;
     border-bottom: 1px solid var(--line);
+    padding: 18px 16px 14px;
+  }
+  .nav-group {
+    display: grid;
+    gap: 6px;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    margin-top: 18px;
+    font-size: 0.82rem;
+  }
+  .nav-group a {
+    overflow: hidden;
+    padding: 8px 6px;
+    text-align: center;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
   .content {
     padding: 20px;
+  }
+  .metric-grid,
+  .dashboard-grid,
+  .connector-form,
+  .custom-api-row,
+  .custom-api-runner {
+    grid-template-columns: 1fr;
+  }
+  .section-heading,
+  .agent-row,
+  .job-row,
+  .activity-row,
+  .task-row,
+  .playbook-option {
+    align-items: start;
+    grid-template-columns: 1fr;
+  }
+  .row-right {
+    justify-items: start;
   }
 }

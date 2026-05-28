@@ -81,6 +81,7 @@ export async function decideApproval(input: {
   status: "approved" | "rejected";
   decidedBy?: string;
   note?: string;
+  executeApproved?: (action: typeof runActions.$inferSelect) => Promise<unknown>;
 }) {
   const [approval] = await input.db.select().from(approvals).where(eq(approvals.id, input.approvalId)).limit(1);
   if (!approval) throw new Error("Approval not found");
@@ -102,10 +103,22 @@ export async function decideApproval(input: {
     return { approvalId: approval.id, actionId: action.id, status: "rejected" as const };
   }
 
-  await input.db
-    .update(runActions)
-    .set({ status: "executed", result: { approved: true, executedAt: new Date().toISOString() } })
-    .where(eq(runActions.id, action.id));
+  let result: unknown;
+  try {
+    result = input.executeApproved
+      ? await input.executeApproved(action)
+      : { approved: true, executedAt: new Date().toISOString() };
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "Approved action execution failed";
+    await input.db.update(runActions).set({ status: "failed", result: { error: message } }).where(eq(runActions.id, action.id));
+    await audit(input.db, {
+      orgId: approval.orgId,
+      action: "approval.execution_failed",
+      detail: { approvalId: approval.id, runActionId: action.id, capabilityId: action.capabilityId, error: message }
+    });
+    throw error;
+  }
+  await input.db.update(runActions).set({ status: "executed", result: result as Record<string, unknown> }).where(eq(runActions.id, action.id));
   await audit(input.db, {
     orgId: approval.orgId,
     action: "approval.approved_and_executed",
