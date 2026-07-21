@@ -50,10 +50,21 @@ services:
       postgres:
         condition: service_healthy
 
+  migrate:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+      target: migrate
+    env_file: .env.example
+    depends_on:
+      postgres:
+        condition: service_healthy
+
   web:
     build:
       context: .
       dockerfile: apps/web/Dockerfile
+      target: runner
     env_file: .env.example
     ports:
       - "3000:3000"
