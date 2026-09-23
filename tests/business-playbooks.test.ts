@@ -6,7 +6,8 @@ describe("business playbooks", () => {
     const tasks = buildPlaybookTasks({
       orgId: "org-1",
       playbookIds: ["weekly-finance-control"],
-      now: new Date("2026-05-28T09:00:00+10:00")
+      // The scheduler uses local calendar days and a 5 p.m. deadline.
+      now: new Date(2026, 4, 28, 9)
     });
 
     expect(tasks).toHaveLength(3);
@@ -16,7 +17,11 @@ describe("business playbooks", () => {
       sourceConnectorId: "muster.playbook",
       externalId: "weekly-finance-control:reconcile-bank-feed"
     });
-    expect(tasks[0]?.dueAt?.toISOString().startsWith("2026-05-29")).toBe(true);
+    expect(tasks.map((task) => task.dueAt)).toEqual([
+      new Date(2026, 4, 29, 17),
+      new Date(2026, 4, 29, 17),
+      new Date(2026, 4, 30, 17)
+    ]);
   });
 
   it("does not rebuild tasks that already exist", () => {
