@@ -1,29 +1,20 @@
 packages:
   - "apps/*"
   - "packages/*"
-# Allow the September 2026 security release immediately.
-# Keep release-age checks for all other packages and versions.
+# Allow the Next.js security releases immediately (pnpm's lockfile policy check
+# ignores version-qualified entries, so these are package names).
+# Keep release-age checks for all other packages.
 minimumReleaseAgeExclude:
-  - "next@16.3.8"
-  - "@next/env@16.3.8"
-  - "@next/swc-darwin-arm64@16.3.8"
-  - "@next/swc-darwin-x64@16.3.8"
-  - "@next/swc-linux-arm64-gnu@16.3.8"
-  - "@next/swc-linux-arm64-musl@16.3.8"
-  - "@next/swc-linux-x64-gnu@16.3.8"
-  - "@next/swc-linux-x64-musl@16.3.8"
-  - "@next/swc-win32-arm64-msvc@16.3.8"
-  - "@next/swc-win32-x64-msvc@16.3.8"
-  - '@next/env@16.4.1'
-  - '@next/swc-darwin-arm64@16.4.1'
-  - '@next/swc-darwin-x64@16.4.1'
-  - '@next/swc-linux-arm64-gnu@16.4.1'
-  - '@next/swc-linux-arm64-musl@16.4.1'
-  - '@next/swc-linux-x64-gnu@16.4.1'
-  - '@next/swc-linux-x64-musl@16.4.1'
-  - '@next/swc-win32-arm64-msvc@16.4.1'
-  - '@next/swc-win32-x64-msvc@16.4.1'
-  - next@16.4.1
+  - "next"
+  - "@next/env"
+  - "@next/swc-darwin-arm64"
+  - "@next/swc-darwin-x64"
+  - "@next/swc-linux-arm64-gnu"
+  - "@next/swc-linux-arm64-musl"
+  - "@next/swc-linux-x64-gnu"
+  - "@next/swc-linux-x64-musl"
+  - "@next/swc-win32-arm64-msvc"
+  - "@next/swc-win32-x64-msvc"
 onlyBuiltDependencies:
   - esbuild
   - protobufjs
