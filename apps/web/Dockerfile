@@ -1,4 +1,4 @@
-FROM node:24-alpine AS base
+FROM node:24.22.1-alpine AS base
 WORKDIR /app
 RUN corepack enable
 
@@ -17,7 +17,7 @@ ENV CI=true
 RUN pnpm --filter @muster/web build
 RUN mkdir -p apps/web/public
 
-FROM node:24-alpine AS runner
+FROM node:24.22.1-alpine AS runner
 WORKDIR /app
 ENV NODE_ENV=production HOSTNAME=0.0.0.0 PORT=3000 NEXT_TELEMETRY_DISABLED=1
 RUN addgroup -S -g 1001 nodejs && adduser -S -u 1001 -G nodejs nextjs
