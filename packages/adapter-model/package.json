@@ -15,6 +15,6 @@
     "@muster/core": "workspace:*",
     "ai": "6.0.191",
     "ollama-ai-provider": "1.2.0",
-    "zod": "4.3.0"
+    "zod": "4.6.6"
   }
 }

@@ -23,3 +23,7 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   sharp: true
+overrides:
+  follow-redirects: ">=1.16.1"
+  vite: "^8.1.6"
+  zod: ">=4.6.6"
