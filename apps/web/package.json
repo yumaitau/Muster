@@ -22,7 +22,7 @@
     "@muster/core": "workspace:*",
     "@muster/db": "workspace:*",
     "@trigger.dev/sdk": "4.4.6",
-    "better-auth": "1.6.11",
+    "better-auth": "1.7.7",
     "lucide-react": "0.555.0",
     "mailparser": "^3.9.8",
     "next": "16.4.1",

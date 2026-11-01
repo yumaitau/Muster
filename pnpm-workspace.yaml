@@ -23,3 +23,5 @@ allowBuilds:
   esbuild: true
   protobufjs: true
   sharp: true
+overrides:
+  systeminformation: ">=5.33.16"
